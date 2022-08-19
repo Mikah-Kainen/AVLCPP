@@ -1,15 +1,17 @@
 #include "Node.cpp"
+#include <deque>
+#include <iostream>
 
 
 template <typename T>
 class Tree
 {
-//private:
-public:
+private:
+//public:
 	std::shared_ptr<Node<T>> head;
 
 
-	std::shared_ptr<Node<T>> Rotateleft(std::shared_ptr<Node<T>> oldHead)
+	std::shared_ptr<Node<T>> rotateLeft(std::shared_ptr<Node<T>> oldHead)
 	{
 		std::shared_ptr<Node<T>> newHead;
 
@@ -27,7 +29,10 @@ public:
 		}
 		else
 		{
-
+			newHead = oldHead->RightChild;
+			std::shared_ptr<Node<T>> oldLeftChild = newHead->LeftChild;
+			newHead->LeftChild = oldHead;
+			oldHead->RightChild = oldLeftChild;
 		}
 
 		return newHead;
@@ -35,69 +40,135 @@ public:
 
 
 
-	std::shared_ptr<Node<T>> RotateRight(std::shared_ptr<Node<T>> oldHead)
+	std::shared_ptr<Node<T>> rotateRight(std::shared_ptr<Node<T>> oldHead)
 	{
 		std::shared_ptr<Node<T>> newHead;
 
-		if (oldHead->RightChild->Balance > 0)
+		if (oldHead->LeftChild->Balance > 0)
 		{
-			//double rotation logic 
+			newHead = oldHead->LeftChild->RightChild;
+			std::shared_ptr<Node<T>> oldLeftChild = newHead->LeftChild;
+			std::shared_ptr<Node<T>> oldRightChild = newHead->RightChild;
+
+			newHead->RightChild = oldHead;
+			newHead->LeftChild = oldHead->LeftChild;
+
+			newHead->LeftChild->RightChild = oldLeftChild;
+			newHead->RightChild->LeftChild = oldRightChild;
 		}
 		else
 		{
-			//single rotation logic
+			newHead = oldHead->LeftChild;
+			std::shared_ptr<Node<T>> oldRightChild = newHead->RightChild;
+			newHead->RightChild = oldHead;
+			oldHead->LeftChild = oldRightChild;
 		}
 
 		return newHead;
 	}
 
 
-	//std::shared_ptr<Node<T>> RotateLeft(std::shared_ptr<Node<T>> parentNode)
-	//{
-	//	if (parentNode->RightChild->RightChild == nullptr)
-	//	{
-	//		std::shared_ptr<Node<T>> temp = parentNode->RightChild->LeftChild;
-	//		parentNode->RightChild->LeftChild = nullptr;
-	//		temp->RightChild = parentNode->RightChild;
-	//		parentNode->RightChild = temp;
-	//	}
 
-	//	std::shared_ptr<Node<T>> newParent = parentNode->RightChild;
-	//	std::shared_ptr<Node<T>> temp2 = newParent->LeftChild;
-	//	newParent->LeftChild = parentNode;
-	//	parentNode->RightChild = temp2;
+public:
 
-	//	return newParent;
-	//}
-
-	//std::shared_ptr<Node<T>> RotateRight(std::shared_ptr<Node<T>> parentNode)
-	//{
-	//	if (parentNode->LeftChild->LeftChild == nullptr)
-	//	{
-	//		std::shared_ptr<Node<T>> temp = parentNode->LeftChild->RightChild;
-	//		parentNode->LeftChild->RightChild = nullptr;
-	//		temp->LeftChild = parentNode->LeftChild;
-	//		parentNode->LeftChild = temp;
-	//	}
-
-	//	std::shared_ptr<Node<T>> newParent = parentNode->LeftChild;
-	//	std::shared_ptr<Node<T>> temp2 = newParent->RightChild;
-	//	newParent->RightChild = parentNode;
-	//	parentNode->LeftChild = temp2;
-
-	//	return newParent;
-	//}
-
-//public:
+	int Count;
 
 	Tree()
-		: head{nullptr}
+		: head{ nullptr }, Count{ 0 }
 	{
 
 	}
 
 
 	void Add(T value)
+	{
+		std::shared_ptr<Node<T>> newNode = std::make_shared<Node<T>>(value);
+		Count++;
+		if (head == nullptr)
+		{
+			head = newNode;
+			return;
+		}
+
+		std::shared_ptr<Node<T>> current = head;
+		std::deque<std::shared_ptr<Node<T>>> parents;
+		bool isRightChild = false;
+		while (current)
+		{
+			parents.push_back(current);
+			if (newNode->Value < current->Value)
+			{
+				isRightChild = false;
+				current = current->LeftChild;
+			}
+			else
+			{
+				isRightChild = true;
+				current = current->RightChild;
+			}
+		}
+
+		if (isRightChild)
+		{
+			parents.back()->RightChild = newNode;
+		}
+		else
+		{
+			parents.back()->LeftChild = newNode;
+		}
+
+		while (parents.size() > 1)
+		{
+			current = parents.back();
+			parents.pop_back();
+			bool isRightChild;
+			if (current->Value < parents.back()->Value)
+			{
+				isRightChild = false;
+			}
+			else
+			{
+				isRightChild = true;
+			}
+			current->Balance = current->RightBalance() + current->LeftBalance();
+			if (current->Balance > 1)
+			{
+				if (!isRightChild)
+				{
+					parents.back()->LeftChild = rotateLeft(current);
+				}
+				else
+				{
+					parents.back()->RightChild = rotateLeft(current);
+				}
+			}
+			else if (current->Balance < -1)
+			{
+				if (!isRightChild)
+				{
+					parents.back()->LeftChild = rotateRight(current);
+				}
+				else
+				{
+					parents.back()->RightChild = rotateRight(current);
+				}
+			}
+		}
+		std::cout << "step 1" << std::endl;
+		
+		current = parents.back();
+		current->Balance = current->RightBalance() + current->LeftBalance();
+		if (current->Balance > 1)
+		{
+			head = rotateLeft(current);
+		}
+		else if (current->Balance < -1)
+		{
+			head = rotateRight(current);
+		}
+	}
+
+	void FakeAdd(T value)
 	{
 		std::shared_ptr<Node<T>> newNode = std::make_shared<Node<T>>(value);
 		if (value == 15)

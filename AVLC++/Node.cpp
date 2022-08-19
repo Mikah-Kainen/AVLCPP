@@ -14,10 +14,34 @@ public:
 	int Height;
 	int Balance;
 
+
 	Node(T value)
-		:Value{ value }, Height{ 0 }, Balance{ 0 }
+		:Value{ value }, Height{ 1 }, Balance{ 0 }
 	{
 
 	}
 
+	int RightBalance()
+	{
+		if (RightChild)
+		{
+			return RightChild->Balance;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+
+	int LeftBalance()
+	{
+		if (LeftChild)
+		{
+			return LeftChild->Balance;
+		}
+		else
+		{
+			return 0;
+		}
+	}
 };

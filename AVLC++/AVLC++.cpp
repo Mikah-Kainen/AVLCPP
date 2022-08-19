@@ -14,7 +14,12 @@ int main()
     tree.Add(10);
     tree.Add(8);
     tree.Add(12);
-    auto result = tree.Rotateleft(tree.head);
+
+    //tree.FakeAdd(5);
+    //tree.FakeAdd(10);
+    //tree.FakeAdd(8);
+    //tree.FakeAdd(12);
+    //auto result = tree.Rotateleft(tree.head);
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
