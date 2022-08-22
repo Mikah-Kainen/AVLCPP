@@ -15,7 +15,7 @@ private:
 	{
 		std::shared_ptr<Node<T>> newHead;
 
-		if (oldHead->RightChild->Balance < 0)
+		if (oldHead->RightChild->GetBalance() < 0)
 		{
 			newHead = oldHead->RightChild->LeftChild;
 			std::shared_ptr<Node<T>> oldLeftChild = newHead->LeftChild;
@@ -26,6 +26,8 @@ private:
 
 			newHead->LeftChild->RightChild = oldLeftChild;
 			newHead->RightChild->LeftChild = oldRightChild;
+
+			newHead->RightChild->UpdateHeight();
 		}
 		else
 		{
@@ -34,6 +36,9 @@ private:
 			newHead->LeftChild = oldHead;
 			oldHead->RightChild = oldLeftChild;
 		}
+
+		oldHead->UpdateHeight();
+		newHead->UpdateHeight();
 
 		return newHead;
 	}
@@ -44,7 +49,7 @@ private:
 	{
 		std::shared_ptr<Node<T>> newHead;
 
-		if (oldHead->LeftChild->Balance > 0)
+		if (oldHead->LeftChild->GetBalance() > 0)
 		{
 			newHead = oldHead->LeftChild->RightChild;
 			std::shared_ptr<Node<T>> oldLeftChild = newHead->LeftChild;
@@ -55,6 +60,8 @@ private:
 
 			newHead->LeftChild->RightChild = oldLeftChild;
 			newHead->RightChild->LeftChild = oldRightChild;
+
+			newHead->LeftChild->UpdateHeight();
 		}
 		else
 		{
@@ -63,6 +70,9 @@ private:
 			newHead->RightChild = oldHead;
 			oldHead->LeftChild = oldRightChild;
 		}
+
+		oldHead->UpdateHeight();
+		newHead->UpdateHeight();
 
 		return newHead;
 	}
@@ -116,6 +126,7 @@ public:
 		{
 			parents.back()->LeftChild = newNode;
 		}
+		parents.back()->UpdateHeight();
 
 		while (parents.size() > 1)
 		{
@@ -130,8 +141,7 @@ public:
 			{
 				isRightChild = true;
 			}
-			current->Balance = current->RightBalance() + current->LeftBalance();
-			if (current->Balance > 1)
+			if (current->GetBalance() > 1)
 			{
 				if (!isRightChild)
 				{
@@ -142,7 +152,7 @@ public:
 					parents.back()->RightChild = rotateLeft(current);
 				}
 			}
-			else if (current->Balance < -1)
+			else if (current->GetBalance() < -1)
 			{
 				if (!isRightChild)
 				{
@@ -153,19 +163,20 @@ public:
 					parents.back()->RightChild = rotateRight(current);
 				}
 			}
+			parents.back()->UpdateHeight();
 		}
 		std::cout << "step 1" << std::endl;
 		
 		current = parents.back();
-		current->Balance = current->RightBalance() + current->LeftBalance();
-		if (current->Balance > 1)
+		if (current->GetBalance() > 1)
 		{
 			head = rotateLeft(current);
 		}
-		else if (current->Balance < -1)
+		else if (current->GetBalance() < -1)
 		{
 			head = rotateRight(current);
 		}
+		head->UpdateHeight();
 	}
 
 	void FakeAdd(T value)

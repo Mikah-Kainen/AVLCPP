@@ -4,28 +4,44 @@ template <typename T>
 class Node
 {
 private:
-	
-
 
 public:
 	std::shared_ptr<Node<T>> RightChild;
 	std::shared_ptr<Node<T>> LeftChild;
-	T Value;
 	int Height;
-	int Balance;
+	T Value;
 
 
 	Node(T value)
-		:Value{ value }, Height{ 1 }, Balance{ 0 }
+		:Value{ value }, Height{ 1 }
 	{
 
 	}
 
-	int RightBalance()
+
+	int GetBalance()
+	{
+		return RightHeight() - LeftHeight();
+	}
+
+	void UpdateHeight()
+	{
+		if (RightHeight() > LeftHeight())
+		{
+			Height = RightHeight() + 1;
+		}
+		else
+		{
+			Height = LeftHeight() + 1;
+		}
+	}
+
+
+	int RightHeight()
 	{
 		if (RightChild)
 		{
-			return RightChild->Balance;
+			return RightChild->Height;
 		}
 		else
 		{
@@ -33,11 +49,11 @@ public:
 		}
 	}
 
-	int LeftBalance()
+	int LeftHeight()
 	{
 		if (LeftChild)
 		{
-			return LeftChild->Balance;
+			return LeftChild->Height;
 		}
 		else
 		{
