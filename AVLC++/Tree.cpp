@@ -38,7 +38,7 @@ private:
 		}
 
 		oldHead->UpdateHeight();
-		newHead->UpdateHeight();
+		newHead->UpdateHeight(); 
 
 		return newHead;
 	}
@@ -77,6 +77,60 @@ private:
 		return newHead;
 	}
 
+
+	std::shared_ptr<Node<T>> updateTree(std::deque<std::shared_ptr<Node<T>>>& nodesToUpdate)
+	{
+		std::shared_ptr<Node<T>> current;
+		while (nodesToUpdate.size() > 1)
+		{
+			current = nodesToUpdate.back();
+			nodesToUpdate.pop_back();
+			bool isRightChild;
+			if (current->Value < nodesToUpdate.back()->Value)
+			{
+				isRightChild = false;
+			}
+			else
+			{
+				isRightChild = true;
+			}
+			if (current->GetBalance() > 1)
+			{
+				if (!isRightChild)
+				{
+					nodesToUpdate.back()->LeftChild = rotateLeft(current);
+				}
+				else
+				{
+					nodesToUpdate.back()->RightChild = rotateLeft(current);
+				}
+			}
+			else if (current->GetBalance() < -1)
+			{
+				if (!isRightChild)
+				{
+					nodesToUpdate.back()->LeftChild = rotateRight(current);
+				}
+				else
+				{
+					nodesToUpdate.back()->RightChild = rotateRight(current);
+				}
+			}
+			nodesToUpdate.back()->UpdateHeight();
+		}
+
+		current = nodesToUpdate.back();
+		if (current->GetBalance() > 1)
+		{
+			current = rotateLeft(current);
+		}
+		else if (current->GetBalance() < -1)
+		{
+			current = rotateRight(current);
+		}
+		current->UpdateHeight();
+		return current;
+	}
 
 
 public:
@@ -128,55 +182,102 @@ public:
 		}
 		parents.back()->UpdateHeight();
 
-		while (parents.size() > 1)
+		head = updateTree(parents);
+	}
+
+
+	bool Remove(T value)
+	{
+		if (head == nullptr)
 		{
-			current = parents.back();
-			parents.pop_back();
-			bool isRightChild;
-			if (current->Value < parents.back()->Value)
+			return false;
+		}
+
+		bool isHead = head->Value == value;
+		std::shared_ptr<Node<T>> current = head;
+		std::deque<std::shared_ptr<Node<T>>> parents = std::deque<std::shared_ptr<Node<T>>>();
+
+		while (current->Value != value)
+		{
+			parents.push_back(current);
+			if (!current)
 			{
-				isRightChild = false;
+				return false;
+			}
+			if (value < current->Value)
+			{
+				current = current->LeftChild;
 			}
 			else
 			{
-				isRightChild = true;
+				current = current->RightChild;
 			}
-			if (current->GetBalance() > 1)
-			{
-				if (!isRightChild)
-				{
-					parents.back()->LeftChild = rotateLeft(current);
-				}
-				else
-				{
-					parents.back()->RightChild = rotateLeft(current);
-				}
-			}
-			else if (current->GetBalance() < -1)
-			{
-				if (!isRightChild)
-				{
-					parents.back()->LeftChild = rotateRight(current);
-				}
-				else
-				{
-					parents.back()->RightChild = rotateRight(current);
-				}
-			}
-			parents.back()->UpdateHeight();
 		}
-		std::cout << "step 1" << std::endl;
 		
-		current = parents.back();
-		if (current->GetBalance() > 1)
+
+		if (!current->LeftChild)
 		{
-			head = rotateLeft(current);
+			if (isHead)
+			{
+				head = head->LeftChild;
+			}
+			else if (current->Value < parents.back()->Value)
+			{
+				parents.back()->LeftChild = current->RightChild;
+			}
+			else
+			{
+				parents.back()->RightChild = current->RightChild;
+			}
 		}
-		else if (current->GetBalance() < -1)
+		else if (!current->RightChild)
 		{
-			head = rotateRight(current);
+			if (isHead)
+			{
+				head = head->RightChild;
+			}
+			else if (current->Value < parents.back()->Value)
+			{
+				parents.back()->LeftChild = current->LeftChild;
+			}
+			else
+			{
+				parents.back()->RightChild = current->LeftChild;
+			}
 		}
-		head->UpdateHeight();
+		else
+		{
+			std::shared_ptr<Node<T>> targetNode = current;
+			std::deque<std::shared_ptr<Node<T>>> deepParents = std::deque<std::shared_ptr<Node<T>>>();
+			current = current->LeftChild;
+			while (current->RightChild)
+			{
+				deepParents.push_back(current);
+				current = current->RightChild;
+			}
+
+			deepParents.back()->RightChild = current->LeftChild;
+			current->LeftChild = updateTree(deepParents);
+			if (isHead)
+			{
+				head = current;
+			}
+			else if (current->Value < parents.back()->Value)
+			{
+				current->RightChild = parents.back()->LeftChild->RightChild;
+				parents.back()->LeftChild = current;
+			}
+			else
+			{
+				current->RightChild = parents.back()->RightChild->RightChild;
+				parents.back()->RightChild = current;
+			}
+			parents.push_back(current);
+		}
+
+		head = updateTree(parents);
+		Count--;
+		return true;
 	}
 
 	void FakeAdd(T value)
@@ -221,10 +322,5 @@ public:
 		}
 	}
 
-
-	bool Remove()
-	{
-
-	}
 
 };
