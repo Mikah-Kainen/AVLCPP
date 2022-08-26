@@ -15,9 +15,15 @@ int main()
     tree.Add(8);
     tree.Add(12);
 
-    //bool removedFive = tree.Remove(5);
-    //bool removedEight = tree.Remove(8);
-    bool removedFifteen = tree.Remove(15);
+
+    bool removedFive = tree.Remove(5);
+    bool removedTwenty = tree.Remove(20);
+    bool removedEight = tree.Remove(8);
+
+    Tree<int> coolerTree = tree;
+    tree.~Tree();
+    //bool removedFifteen = tree.Remove(15);
+    //bool removedTen = tree.Remove(10);
 
     //tree.FakeAdd(5);
     //tree.FakeAdd(10);

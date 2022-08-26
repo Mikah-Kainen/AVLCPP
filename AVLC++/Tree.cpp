@@ -7,8 +7,6 @@ template <typename T>
 class Tree
 {
 private:
-//public:
-	std::shared_ptr<Node<T>> head;
 
 
 	std::shared_ptr<Node<T>> rotateLeft(std::shared_ptr<Node<T>> oldHead)
@@ -38,7 +36,7 @@ private:
 		}
 
 		oldHead->UpdateHeight();
-		newHead->UpdateHeight(); 
+		newHead->UpdateHeight();
 
 		return newHead;
 	}
@@ -89,10 +87,12 @@ private:
 			if (current->Value < nodesToUpdate.back()->Value)
 			{
 				isRightChild = false;
+				nodesToUpdate.back()->LeftChild = current;
 			}
 			else
 			{
 				isRightChild = true;
+				nodesToUpdate.back()->RightChild = current;
 			}
 			if (current->GetBalance() > 1)
 			{
@@ -133,14 +133,61 @@ private:
 	}
 
 
+	void destroy(std::shared_ptr<Node<T>> targetNode)
+	{
+		if (!targetNode)
+		{
+			return;
+		}
+		destroy(targetNode->LeftChild);
+		destroy(targetNode->RightChild);
+		targetNode->LeftChild = nullptr;
+		targetNode->RightChild = nullptr;
+	}
+
+	std::shared_ptr<Node<T>> create(std::shared_ptr<Node<T>> targetNode)
+	{
+		create(targetNode->LeftChild);
+		create(targetNode->RightChild);
+	}
+
+
 public:
 
 	int Count;
+	std::shared_ptr<Node<T>> head;
 
 	Tree()
 		: head{ nullptr }, Count{ 0 }
 	{
 
+	}
+
+
+	Tree(Tree<T>& copyTree)
+	{
+		std::deque<std::shared_ptr<Node<T>>> backingDeque = std::deque<std::shared_ptr<Node<T>>>();
+		backingDeque.push_back(copyTree.head);
+		std::shared_ptr<Node<T>> current = head;
+		while (backingDeque.size() > 0)
+		{
+			current = backingDeque.front();
+			backingDeque.pop_front();
+			if (current)
+			{
+				backingDeque.push_back(current->LeftChild);
+				backingDeque.push_back(current->RightChild);
+				Add(current->Value);
+			}
+		}
+	}
+
+
+	~Tree()
+	{
+		destroy(head);
+		head = nullptr;
+		Count = 0;
 	}
 
 
@@ -200,10 +247,6 @@ public:
 		while (current->Value != value)
 		{
 			parents.push_back(current);
-			if (!current)
-			{
-				return false;
-			}
 			if (value < current->Value)
 			{
 				current = current->LeftChild;
@@ -212,8 +255,12 @@ public:
 			{
 				current = current->RightChild;
 			}
+			if (!current)
+			{
+				return false;
+			}
 		}
-		
+
 
 		if (!current->LeftChild)
 		{
@@ -247,7 +294,7 @@ public:
 		}
 		else
 		{
-			std::shared_ptr<Node<T>> targetNode = current;
+			//current = targetNode
 			std::deque<std::shared_ptr<Node<T>>> deepParents = std::deque<std::shared_ptr<Node<T>>>();
 			current = current->LeftChild;
 			while (current->RightChild)
@@ -256,11 +303,15 @@ public:
 				current = current->RightChild;
 			}
 
-			deepParents.back()->RightChild = current->LeftChild;
-			current->LeftChild = updateTree(deepParents);
+			if (deepParents.size() > 0)
+			{
+				deepParents.back()->RightChild = current->LeftChild;
+				//target has been replaced
+				current->LeftChild = updateTree(deepParents);
+			}
 			if (isHead)
 			{
-				head = current;
+				current->RightChild = head->RightChild;
 			}
 			else if (current->Value < parents.back()->Value)
 			{
@@ -272,6 +323,7 @@ public:
 				current->RightChild = parents.back()->RightChild->RightChild;
 				parents.back()->RightChild = current;
 			}
+
 			parents.push_back(current);
 		}
 
@@ -321,6 +373,4 @@ public:
 			}
 		}
 	}
-
-
 };
